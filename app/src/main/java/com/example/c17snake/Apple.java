@@ -1,4 +1,4 @@
-package com.gamecodeschool.c17snake;
+package com.example.c17snake;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
+
 import java.util.Random;
 
 class Apple {
@@ -47,8 +48,8 @@ class Apple {
         location.y = random.nextInt(mSpawnRange.y - 1) + 1;
     }
 
-    // Let SnakeGame know where the apple is
-    // SnakeGame can share this with the snake
+    // Let com.example.c17snake.SnakeGame know where the apple is
+    // com.example.c17snake.SnakeGame can share this with the snake
     Point getLocation(){
         return location;
     }
