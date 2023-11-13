@@ -1,4 +1,4 @@
-package com.gamecodeschool.c17snake;
+package com.example.c17snake;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
@@ -14,6 +14,7 @@ import android.os.Build;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
 import java.io.IOException;
 
 class SnakeGame extends SurfaceView implements Runnable{
@@ -50,7 +51,7 @@ class SnakeGame extends SurfaceView implements Runnable{
 
 
     // This is the constructor method that gets called
-    // from SnakeActivity
+    // from com.example.c17snake.SnakeActivity
     public SnakeGame(Context context, Point size) {
         super(context);
 
@@ -224,8 +225,7 @@ class SnakeGame extends SurfaceView implements Runnable{
                 // Draw the message
                 // We will give this an international upgrade soon
                 //mCanvas.drawText("Tap To Play!", 200, 700, mPaint);
-                mCanvas.drawText(getResources().
-                                getString(R.string.tap_to_play),
+                mCanvas.drawText("Tap to Play",
                         200, 700, mPaint);
             }
 
@@ -247,7 +247,7 @@ class SnakeGame extends SurfaceView implements Runnable{
                     return true;
                 }
 
-                // Let the Snake class handle the input
+                // Let the com.example.c17snake.Snake class handle the input
                 mSnake.switchHeading(motionEvent);
                 break;
 

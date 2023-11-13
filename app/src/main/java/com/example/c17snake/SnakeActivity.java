@@ -1,4 +1,4 @@
-package com.gamecodeschool.c17snake;
+package com.example.c17snake;
 
 import android.app.Activity;
 import android.graphics.Point;
@@ -7,7 +7,7 @@ import android.view.Display;
 
 public class SnakeActivity extends Activity {
 
-    // Declare an instance of SnakeGame
+    // Declare an instance of com.example.c17snake.SnakeGame
     SnakeGame mSnakeGame;
 
     // Set the game up
