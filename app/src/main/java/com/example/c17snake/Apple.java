@@ -9,7 +9,7 @@ import android.graphics.Point;
 
 import java.util.Random;
 
-class Apple {
+class Apple extends GameObject implements Movable{
 
     // The location of the apple on the grid
     // Not in pixels
@@ -24,12 +24,13 @@ class Apple {
     private Bitmap mBitmapApple;
 
     /// Set up the apple in the constructor
-    Apple(Context context, Point sr, int s){
+    Apple(Context context, Point range, int size) {
+        super(context, range, size);
 
         // Make a note of the passed in spawn range
-        mSpawnRange = sr;
+        mSpawnRange = range;
         // Make a note of the size of an apple
-        mSize = s;
+        mSize = size;
         // Hide the apple off-screen until the game starts
         location.x = -10;
 
@@ -37,11 +38,11 @@ class Apple {
         mBitmapApple = BitmapFactory.decodeResource(context.getResources(), R.drawable.apple);
 
         // Resize the bitmap
-        mBitmapApple = Bitmap.createScaledBitmap(mBitmapApple, s, s, false);
+        mBitmapApple = Bitmap.createScaledBitmap(mBitmapApple, size, size, false);
     }
 
     // This is called every time an apple is eaten
-    void spawn(){
+    void spawn() {
         // Choose two random values and place the apple
         Random random = new Random();
         location.x = random.nextInt(mSpawnRange.x) + 1;
@@ -50,15 +51,28 @@ class Apple {
 
     // Let com.example.c17snake.SnakeGame know where the apple is
     // com.example.c17snake.SnakeGame can share this with the snake
-    Point getLocation(){
+    Point getLocation() {
         return location;
     }
 
     // Draw the apple
-    void draw(Canvas canvas, Paint paint){
+
+    //void draw(Canvas canvas, Paint paint) {
+        //canvas.drawBitmap(mBitmapApple,
+                //location.x * mSize, location.y * mSize, paint);
+
+   // }
+
+    @Override
+    public void draw(Canvas canvas, Paint paint) {
         canvas.drawBitmap(mBitmapApple,
-                location.x * mSize, location.y * mSize, paint);
+        location.x * mSize, location.y * mSize, paint);
+
 
     }
 
+    @Override
+    public void move() {
+        //can be used for moving apples , new feature
+    }
 }
