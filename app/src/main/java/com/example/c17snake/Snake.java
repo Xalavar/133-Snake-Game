@@ -11,7 +11,7 @@ import android.view.MotionEvent;
 
 import java.util.ArrayList;
 
-class Snake {
+class Snake extends GameObject implements Movable{
 
     // The location in the grid of all the segments
     private ArrayList<Point> segmentLocations;
@@ -44,15 +44,16 @@ class Snake {
     private Bitmap mBitmapBody;
 
 
-    Snake(Context context, Point mr, int ss) {
+    Snake(Context context, Point range, int size) {
+        super(context,range,size);
 
         // Initialize our ArrayList
         segmentLocations = new ArrayList<>();
 
         // Initialize the segment size and movement
         // range from the passed in parameters
-        mSegmentSize = ss;
-        mMoveRange = mr;
+        mSegmentSize = size;
+        mMoveRange = range;
 
         // Create and scale the bitmaps
         mBitmapHeadRight = BitmapFactory
@@ -76,7 +77,7 @@ class Snake {
         // in the correct direction
         mBitmapHeadRight = Bitmap
                 .createScaledBitmap(mBitmapHeadRight,
-                        ss, ss, false);
+                        size, size, false);
 
         // A matrix for scaling
         Matrix matrix = new Matrix();
@@ -84,20 +85,20 @@ class Snake {
 
         mBitmapHeadLeft = Bitmap
                 .createBitmap(mBitmapHeadRight,
-                        0, 0, ss, ss, matrix, true);
+                        0, 0, size, size, matrix, true);
 
         // A matrix for rotating
         matrix.preRotate(-90);
         mBitmapHeadUp = Bitmap
                 .createBitmap(mBitmapHeadRight,
-                        0, 0, ss, ss, matrix, true);
+                        0, 0, size, size, matrix, true);
 
         // Matrix operations are cumulative
         // so rotate by 180 to face down
         matrix.preRotate(180);
         mBitmapHeadDown = Bitmap
                 .createBitmap(mBitmapHeadRight,
-                        0, 0, ss, ss, matrix, true);
+                        0, 0, size, size, matrix, true);
 
         // Create and scale the body
         mBitmapBody = BitmapFactory
@@ -106,11 +107,11 @@ class Snake {
 
         mBitmapBody = Bitmap
                 .createScaledBitmap(mBitmapBody,
-                        ss, ss, false);
+                        size, size, false);
 
         // The halfway point across the screen in pixels
         // Used to detect which side of screen was pressed
-        halfWayPoint = mr.x * ss / 2;
+        halfWayPoint = range.x * size / 2;
     }
 
     // Get the snake ready for a new game
@@ -127,7 +128,7 @@ class Snake {
     }
 
 
-    void move() {
+    public void move() {
         // Move the body
         // Start at the back and move it
         // to the position of the segment in front of it
@@ -205,7 +206,8 @@ class Snake {
         return false;
     }
 
-    void draw(Canvas canvas, Paint paint) {
+    @Override
+    public void draw(Canvas canvas, Paint paint) {
 
         // Don't run this code if ArrayList has nothing in it
         if (!segmentLocations.isEmpty()) {
