@@ -6,6 +6,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.WindowManager;
 
 import java.util.Random;
 
@@ -22,6 +25,8 @@ class Apple extends GameObject implements Movable{
 
     // An image to represent the apple
     private Bitmap mBitmapApple;
+
+    private Random random = new Random();
 
     /// Set up the apple in the constructor
     Apple(Context context, Point range, int size) {
@@ -44,8 +49,8 @@ class Apple extends GameObject implements Movable{
     // This is called every time an apple is eaten
     void spawn() {
         // Choose two random values and place the apple
-        Random random = new Random();
-        location.x = random.nextInt(mSpawnRange.x) + 1;
+        //CHANGED
+        location.x = random.nextInt(mSpawnRange.x - 1) + 1;
         location.y = random.nextInt(mSpawnRange.y - 1) + 1;
     }
 
@@ -71,8 +76,36 @@ class Apple extends GameObject implements Movable{
 
     }
 
+
+
     @Override
-    public void move() {
+    public void move(Context context, int screenWidth) {
         //can be used for moving apples , new feature
+
+        Log.d("screenWidth", "Value: " + Float.toString(screenWidth));
+        Log.d("location", "Value: " + Float.toString(location.x * mSize));
+
+        //System.out.println(screenWidth);
+
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+
+        if (windowManager != null) {
+            DisplayMetrics metrics = new DisplayMetrics();
+            windowManager.getDefaultDisplay().getMetrics(metrics);
+
+            // Move the apple horizontally
+            location.x += 1; // You can adjust the movement speed as needed
+
+
+            // Check if the apple has reached the right boundary
+            if (location.x * mSize >= screenWidth) {
+                // If so, reset its position to the left
+                location.x = 0;
+            }
+        }
+
+        // Handle the case where WindowManager is not available
+        // Optionally, you might want to log an error or handle it in another way
     }
+
 }
