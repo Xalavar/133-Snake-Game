@@ -11,7 +11,7 @@ import android.view.MotionEvent;
 
 import java.util.ArrayList;
 
-class Snake extends GameObject implements Movable{
+class Snake extends GameObject{
 
     // The location in the grid of all the segments
     private ArrayList<Point> segmentLocations;
@@ -206,7 +206,7 @@ class Snake extends GameObject implements Movable{
         return false;
     }
 
-    @Override
+
     public void draw(Canvas canvas, Paint paint) {
 
         // Don't run this code if ArrayList has nothing in it
