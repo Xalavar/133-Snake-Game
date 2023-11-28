@@ -28,6 +28,9 @@ class SnakeGame extends SurfaceView implements Runnable{
     // Is the game currently playing and or paused?
     private GameState mGameState;
 
+    private volatile boolean mNewLife = false;
+    private int mLife = 3;
+
     // for playing sound effects
     private SoundPool mSP;
     private int mEat_ID = -1;
@@ -53,6 +56,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     private PauseButton pauseButton;
     private Bitmap pauseBitmap;
     private Bitmap playBitmap;
+
 
 
 
@@ -192,6 +196,18 @@ class SnakeGame extends SurfaceView implements Runnable{
         // Setup mNextFrameTime so an update can triggered
         mNextFrameTime = System.currentTimeMillis();
     }
+    public void newLife(){
+
+        // reset the snake
+        mSnake.reset(NUM_BLOCKS_WIDE, mNumBlocksHigh);
+
+        // Get the apple ready for dinner
+        mApple.spawn();
+
+        // Setup mNextFrameTime so an update can triggered
+        mNextFrameTime = System.currentTimeMillis();
+        resume();
+    }
 
 
     // Handles the game loop
@@ -255,9 +271,14 @@ class SnakeGame extends SurfaceView implements Runnable{
         }
 
         // Did the snake die?
-        if (mSnake.detectDeath()) {
-            // Pause the game ready to start again
+        if (mSnake.detectCollision()) {
             mSP.play(mCrashID, 1, 1, 0, 0, 1);
+            mNewLife = true;
+            pause();
+            if (mLife==0) {
+                mSP.play(mCrashID, 1, 1, 0, 0, 1);
+                mPaused = true;
+            }
 
             // Toggle the Game Over screen
             mGameState.setGameOver(true);
@@ -282,8 +303,10 @@ class SnakeGame extends SurfaceView implements Runnable{
             mPaint.setColor(Color.argb(255, 255, 255, 255));
             mPaint.setTextSize(120);
 
+
             // Draw the score
-            mCanvas.drawText("" + mScore, 20, 120, mPaint);
+            mCanvas.drawText("Score: " + mScore, 20, 120, mPaint);
+            mCanvas.drawText("Lives: " + mLife, 620, 120, mPaint);
 
             // Draw the apple and the snake
             mApple.draw(mCanvas, mPaint);
@@ -344,6 +367,18 @@ class SnakeGame extends SurfaceView implements Runnable{
                 mCanvas.scale(0.5f, 0.5f);
                 mCanvas.drawBitmap(pauseBitmap, 4100, 100, null);
             }
+            if(mNewLife){
+                mLife--;
+                // Set the size and color of the mPaint for the text
+                mPaint.setColor(Color.argb(255, 255, 255, 255));
+                mPaint.setTextSize(100);
+
+                // Draw the message
+                // We will give this an international upgrade soon
+                //mCanvas.drawText("Tap To Play!", 200, 700, mPaint);
+                mCanvas.drawText("You've collided! Tap again to use new life",
+                        100, 300, mPaint);
+            }
 
 
             // Unlock the mCanvas and reveal the graphics for this frame
@@ -357,6 +392,9 @@ class SnakeGame extends SurfaceView implements Runnable{
     public boolean onTouchEvent(MotionEvent motionEvent) {
         switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_UP:
+                if (mPaused) {
+                    mLife = 3;
+                    mPaused = false;
 
                 if (mGameState.isPaused() && !mGameState.isUserPaused() && !mGameState.isGameOver()) {
                     // Triggers setup for starting a new game
@@ -366,6 +404,10 @@ class SnakeGame extends SurfaceView implements Runnable{
                     // Don't want to process snake direction for this tap
                     return true;
                 }
+                if (mNewLife){
+                    mNewLife = false;
+                    mPaused = false;
+                    newLife();
                 if (pauseButton.isClicked(motionEvent.getX(), motionEvent.getY()) && !mGameState.isGameOver()) {
                     // Only allow the user to pause the game when it's running
                     // If the game is paused, we won't allow user input anywhere except the pause/play button

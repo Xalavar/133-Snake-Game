@@ -13,6 +13,8 @@ import java.util.ArrayList;
 
 class Snake extends GameObject implements Movable{
 
+    // FEATURE: Life System
+
     // The location in the grid of all the segments
     private ArrayList<Point> segmentLocations;
 
@@ -126,8 +128,6 @@ class Snake extends GameObject implements Movable{
         // Start with a single snake segment
         segmentLocations.add(new Point(w / 2, h / 2));
     }
-
-
     public void move() {
         // Move the body
         // Start at the back and move it
@@ -165,30 +165,30 @@ class Snake extends GameObject implements Movable{
 
     }
 
-    boolean detectDeath() {
-        // Has the snake died?
-        boolean dead = false;
+    boolean detectCollision() {
+        // Has the snake collided?
+        boolean collide = false;
 
-        // Hit any of the screen edges
+        // Snake crashed at any of the screen edges
         if (segmentLocations.get(0).x == -1 ||
                 segmentLocations.get(0).x > mMoveRange.x ||
                 segmentLocations.get(0).y == -1 ||
                 segmentLocations.get(0).y > mMoveRange.y) {
-
-            dead = true;
+            collide = true;
+            //lifeTotal--;
         }
-
-        // Eaten itself?
+        // Snake ate itself?
         for (int i = segmentLocations.size() - 1; i > 0; i--) {
             // Have any of the sections collided with the head
             if (segmentLocations.get(0).x == segmentLocations.get(i).x &&
                     segmentLocations.get(0).y == segmentLocations.get(i).y) {
-
-                dead = true;
+                collide = true;
+                //lifeTotal--;
             }
         }
-        return dead;
+        return collide;
     }
+
 
     boolean checkDinner(Point l) {
         //if (snakeXs[0] == l.x && snakeYs[0] == l.y) {
