@@ -29,7 +29,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     private GameState mGameState;
 
     private volatile boolean mNewLife = false;
-    private int mLife = 3;
+    private GameInfo mGameInfo;
 
     // for playing sound effects
     private SoundPool mSP;
@@ -40,8 +40,6 @@ class SnakeGame extends SurfaceView implements Runnable{
     private final int NUM_BLOCKS_WIDE = 40;
     private int mNumBlocksHigh;
 
-    // How many points does the player have
-    private int mScore;
 
     // Objects for drawing
     private Canvas mCanvas;
@@ -67,6 +65,7 @@ class SnakeGame extends SurfaceView implements Runnable{
 
         // Initialize GameState
         mGameState = new GameState();
+        mGameInfo = new GameInfo();
 
         // Add dimensions for pause button and load the image
         pauseButton = new PauseButton(2050, 50, 100, 100);
@@ -121,6 +120,53 @@ class SnakeGame extends SurfaceView implements Runnable{
                 new Point(NUM_BLOCKS_WIDE,
                         mNumBlocksHigh),
                 blockSize);
+
+    }
+
+    // This class holds useful information like the score and lives
+    public class GameInfo {
+        private int lives; // number of lives
+        private int score; // number of points
+
+        public GameInfo() {
+            resetCounters();
+        }
+        
+        public GameInfo(int lives, int score) {
+            this.lives = lives;
+            this.score = score;
+        }
+
+        // A method for resetting the lives and score to their default values
+        // Usually when starting a new game
+        public void resetCounters() {
+            this.lives = 3;
+            this.score = 0;
+        }
+
+        public int getLives() {
+            return lives;
+        }
+        
+        public void incLives() {
+            lives++;
+        }
+
+        public void decLives() {
+            lives--;
+        }
+        
+        public int getScore() {
+            return score;
+        }
+        
+        public void incScore() {
+            score++;
+        }
+
+        public void decScore() {
+            score--;
+        }
 
     }
 
@@ -209,9 +255,8 @@ class SnakeGame extends SurfaceView implements Runnable{
         // Get the apple ready for dinner
         mApple.spawn();
 
-        // Reset the mScore
-        mScore = 0;
-
+        // Reset the Score
+        //mScore = 0;
 
         // Setup mNextFrameTime so an update can triggered
         mNextFrameTime = System.currentTimeMillis();
@@ -288,8 +333,8 @@ class SnakeGame extends SurfaceView implements Runnable{
             // One day the apple will be ready!
             mApple.spawn();
 
-            // Add to mScore
-            mScore = mScore + 1;
+            // Increase score by +1
+            mGameInfo.incScore();
 
             // Play a sound
             mSP.play(mEat_ID, 1, 1, 0, 0, 1);
@@ -299,11 +344,11 @@ class SnakeGame extends SurfaceView implements Runnable{
         if (mSnake.detectCollision()) {
             mSP.play(mCrashID, 1, 1, 0, 0, 1);
             mNewLife = true;
-            mLife--;
+            mGameInfo.decLives();
             //mLife = mLife - 1;
             //pause();
 
-            if (mLife==0) {
+            if (mGameInfo.getLives()==0) {
                 // Ran out of lives
                 mSP.play(mCrashID, 1, 1, 0, 0, 1);
                 mGameState.setPaused(true);
@@ -339,8 +384,8 @@ class SnakeGame extends SurfaceView implements Runnable{
 
 
             // Draw the score
-            mCanvas.drawText("Score: " + mScore, 20, 120, mPaint);
-            mCanvas.drawText("Lives: " + mLife, 620, 120, mPaint);
+            mCanvas.drawText("Score: " + mGameInfo.getScore(), 20, 120, mPaint);
+            mCanvas.drawText("Lives: " + mGameInfo.getLives(), 620, 120, mPaint);
 
             // Draw the apple and the snake
             mApple.draw(mCanvas, mPaint);
@@ -361,7 +406,7 @@ class SnakeGame extends SurfaceView implements Runnable{
 
                 // Score
                 mPaint.setTextSize(150);
-                mCanvas.drawText("Score: "+mScore, 900, 700, mPaint);
+                mCanvas.drawText("Score: "+mGameInfo.getScore(), 900, 700, mPaint);
 
                 // How to start new game
                 mPaint.setTextSize(50);
@@ -394,13 +439,13 @@ class SnakeGame extends SurfaceView implements Runnable{
                 mPaint.setColor(Color.argb(255, 255, 255, 255));
                 mPaint.setTextSize(100);
 
-                String message = String.format("You have %d lives remaining.", mLife);
-                if (mLife == 1) {
+                String message = String.format("You have %d lives remaining.", mGameInfo.getLives());
+                if (mGameInfo.getLives() == 1) {
                     // Uses singular "life" when the player only has 1 life
-                    message = String.format("You have %d life remaining.", mLife);
+                    message = String.format("You have %d life remaining.", mGameInfo.getLives());
                 }
                 mPaint.setTextSize(120);
-                mCanvas.drawText(message,350, 600, mPaint);
+                mCanvas.drawText(message,375, 600, mPaint);
 
                 //mCanvas.drawText("Tap again to use new life.", 500, 900, mPaint);
             } else {
@@ -421,8 +466,9 @@ class SnakeGame extends SurfaceView implements Runnable{
                 if (mNewLife) {
                     // When the player loses a life, this conditional activates
                     mNewLife = false;
-                    //mGameState.setPaused(false);
                     newLife();
+
+                    return true; // Don't change snake direction
                 } else if (mGameState.isPaused() && !mGameState.isUserPaused() && !mGameState.isGameOver()) {
                     // The game is internally "paused" until the screen is tapped
                     // This is primarily used for freezing the game so the user can read the screen
@@ -431,8 +477,7 @@ class SnakeGame extends SurfaceView implements Runnable{
                     mGameState.setPaused(false);
                     newGame();
 
-                    // Don't want to process snake direction for this tap
-                    return true;
+                    return true; // Don't change snake direction
                 }
                 if (pauseButton.isClicked(motionEvent.getX(), motionEvent.getY()) && !mGameState.isGameOver()) {
                     // Only allow the user to pause the game when it's running
@@ -440,7 +485,8 @@ class SnakeGame extends SurfaceView implements Runnable{
 
                     mGameState.toggleUserPaused();
                     mGameState.togglePaused();
-                    return true;
+
+                    return true; // Don't change snake direction
                 } else if (mGameState.isGameOver()) {
                     // Game over
                     // Show the Game Over screen and start new game upon tap
@@ -448,11 +494,9 @@ class SnakeGame extends SurfaceView implements Runnable{
                     mGameState.setPaused(true);
                     mGameState.setUserPaused(false);
 
-                    mLife = 3; // reset the life counter
-                    mScore = 0;
+                    mGameInfo.resetCounters(); // reset the lives and score to the defaults
 
-                    // Don't want to process snake direction for this tap
-                    return true;
+                    return true; // Don't change snake direction
                 } else if (!mGameState.isPaused()) {
                     // Let the com.example.c17snake.Snake class handle the input
                     mSnake.switchHeading(motionEvent);
