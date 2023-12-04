@@ -291,7 +291,6 @@ class SnakeGame extends SurfaceView implements Runnable{
 
             // Possible idea for later: show score and highest score at the end
         }
-
     }
 
 
@@ -465,7 +464,6 @@ class SnakeGame extends SurfaceView implements Runnable{
         }
     }
 
-
     // Stop the thread
     public void pause() {
         mGameState.setPlaying(false);
@@ -476,11 +474,11 @@ class SnakeGame extends SurfaceView implements Runnable{
         }
     }
 
-
     // Start the thread
     public void resume() {
         mGameState.setPlaying(true);
         mThread = new Thread(this);
         mThread.start();
     }
+
 }

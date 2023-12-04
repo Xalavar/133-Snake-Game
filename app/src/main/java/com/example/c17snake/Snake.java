@@ -11,7 +11,7 @@ import android.view.MotionEvent;
 
 import java.util.ArrayList;
 
-class Snake extends GameObject{
+class Snake extends GameObject implements Movable{
 
     // FEATURE: Life System
 
@@ -206,7 +206,7 @@ class Snake extends GameObject{
         return false;
     }
 
-
+    @Override
     public void draw(Canvas canvas, Paint paint) {
 
         // Don't run this code if ArrayList has nothing in it
