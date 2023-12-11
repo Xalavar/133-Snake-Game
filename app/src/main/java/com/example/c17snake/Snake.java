@@ -258,6 +258,11 @@ class Snake extends GameObject implements Movable{
         }
     }
 
+    @Override
+    public void move(Context context, int screenWidth) {
+
+    }
+
 
     // Handle changing direction
     void switchHeading(MotionEvent motionEvent) {

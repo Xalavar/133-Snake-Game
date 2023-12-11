@@ -8,7 +8,7 @@ import android.view.Display;
 public class SnakeActivity extends Activity {
 
     // Declare an instance of com.example.c17snake.SnakeGame
-    SnakeGame mSnakeGame;
+    private SnakeGame mSnakeGame;
 
     // Set the game up
     @Override
@@ -17,15 +17,11 @@ public class SnakeActivity extends Activity {
 
         // Get the pixel dimensions of the screen
         Display display = getWindowManager().getDefaultDisplay();
-
-        // Initialize the result into a Point object
         Point size = new Point();
         display.getSize(size);
 
         // Create a new instance of the SnakeEngine class
         mSnakeGame = new SnakeGame(this, size);
-
-        // Make snakeEngine the view of the Activity
         setContentView(mSnakeGame);
     }
 
