@@ -60,13 +60,6 @@ class Apple extends GameObject implements Movable{
         return location;
     }
 
-    // Draw the apple
-
-    //void draw(Canvas canvas, Paint paint) {
-        //canvas.drawBitmap(mBitmapApple,
-                //location.x * mSize, location.y * mSize, paint);
-
-   // }
 
     @Override
     public void draw(Canvas canvas, Paint paint) {
@@ -75,8 +68,6 @@ class Apple extends GameObject implements Movable{
 
 
     }
-
-
 
     @Override
     public void move(Context context, int screenWidth) {
@@ -103,9 +94,6 @@ class Apple extends GameObject implements Movable{
                 location.x = 0;
             }
         }
-
-        // Handle the case where WindowManager is not available
-        // Optionally, you might want to log an error or handle it in another way
     }
 
 }
