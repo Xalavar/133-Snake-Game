@@ -23,6 +23,7 @@ public class SnakeActivity extends Activity {
         // Create a new instance of the SnakeEngine class
         mSnakeGame = new SnakeGame(this, size);
         setContentView(mSnakeGame);
+
     }
 
     // Start the thread in snakeEngine

@@ -17,8 +17,12 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.util.Log;
-
+import java.io.File;
 import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
 
 class SnakeGame extends SurfaceView implements Runnable{
 
@@ -26,7 +30,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     private Thread mThread = null;
     // Control pausing between updates
     private long mNextFrameTime;
-    // Is the game currently playing and or paused?
+    // Is the game currently playing and/or paused?
     private GameState mGameState;
 
     private volatile boolean mNewLife = false;
@@ -45,7 +49,6 @@ class SnakeGame extends SurfaceView implements Runnable{
     private final int NUM_BLOCKS_WIDE = 40;
     private int mNumBlocksHigh;
 
-
     // Objects for drawing
     private Canvas mCanvas;
     private SurfaceHolder mSurfaceHolder;
@@ -60,9 +63,6 @@ class SnakeGame extends SurfaceView implements Runnable{
     private Bitmap pauseBitmap;
     private Bitmap playBitmap;
 
-
-
-
     // This is the constructor method that gets called
     // from com.example.c17snake.SnakeActivity
     public SnakeGame(Context context, Point size) {
@@ -70,7 +70,8 @@ class SnakeGame extends SurfaceView implements Runnable{
 
         // Initialize GameState
         mGameState = new GameState();
-        mGameInfo = new GameInfo();
+        mGameInfo = new GameInfo(context);
+        // Initialize other variables
 
         // Add dimensions for pause button and load the image
         pauseButton = new PauseButton(2050, 50, 100, 100);
@@ -138,9 +139,13 @@ class SnakeGame extends SurfaceView implements Runnable{
     public class GameInfo {
         private int lives; // number of lives
         private int score; // number of points
+        private List<Integer> highScores;
+        private Context context;
+        private boolean newHighScore = false;
 
         public GameInfo() {
             resetCounters();
+            loadHighScores();
         }
         
         public GameInfo(int lives, int score) {
@@ -148,11 +153,18 @@ class SnakeGame extends SurfaceView implements Runnable{
             this.score = score;
         }
 
+        public GameInfo(Context context) {
+            this.context = context; // needs this to be able to save scores to local file
+            resetCounters();
+            loadHighScores();
+        }
+
         // A method for resetting the lives and score to their default values
         // Usually when starting a new game
         public void resetCounters() {
             this.lives = 3;
             this.score = 0;
+            this.newHighScore = false;
         }
 
         public int getLives() {
@@ -170,7 +182,67 @@ class SnakeGame extends SurfaceView implements Runnable{
         public int getScore() {
             return score;
         }
-        
+        public List<Integer> getHighScores() {
+            return highScores;
+        }
+
+        public boolean isNewHighScore() {
+            return newHighScore;
+        }
+
+        public void updateHighScores() {
+            // Loops through each score
+            for (int i = 0; i < highScores.size(); i++) {
+                if (score > highScores.get(i)) {
+                    highScores.add(i, score);
+                    highScores.remove(highScores.size() - 1); // Keep only the top three scores
+                    saveHighScores();  // Save the updated high scores
+                    newHighScore = true;
+                    break;
+                }
+            }
+        }
+        // Save the high scores to a file
+        private void saveHighScores() {
+            try (ObjectOutputStream outputStream = new ObjectOutputStream(
+                    new FileOutputStream(getHighScoresFile()))) {
+                outputStream.writeObject(highScores);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Load the high scores from a file
+        @SuppressWarnings("unchecked")
+        private void loadHighScores() {
+            File highScoresFile = getHighScoresFile();
+            if (highScoresFile.exists()) {
+                try (ObjectInputStream inputStream = new ObjectInputStream(
+                        new FileInputStream(highScoresFile))) {
+                    highScores = (List<Integer>) inputStream.readObject();
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                // If the file doesn't exist, create a new one with default scores
+                try (ObjectOutputStream outputStream = new ObjectOutputStream(
+                        new FileOutputStream(highScoresFile))) {
+                    List<Integer> defaultScores = new ArrayList<>(List.of(0, 0, 0));
+                    outputStream.writeObject(defaultScores);
+                    highScores = defaultScores;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }
+
+        private File getHighScoresFile() {
+            // Create a file in the app's internal storage directory
+            return new File(context.getFilesDir(), "high_scores.txt");
+        }
+
+
         public void incScore() {
             score++;
         }
@@ -266,9 +338,6 @@ class SnakeGame extends SurfaceView implements Runnable{
         // Get the apple ready for dinner
         mApple.spawn();
 
-        // Reset the Score
-        //mScore = 0;
-
         // Setup mNextFrameTime so an update can triggered
         mNextFrameTime = System.currentTimeMillis();
     }
@@ -351,27 +420,25 @@ class SnakeGame extends SurfaceView implements Runnable{
         // Did the snake die?
         if (mSnake.detectCollision()) {
             mSP.play(mBopID, 1, 1, 0, 0, 1);
-            mNewLife = true;
             mGameInfo.decLives();
-            //mLife = mLife - 1;
-            //pause();
 
             if (mGameInfo.getLives()==0) {
                 // Ran out of lives
                 mSP.play(mBopID, 1, 1, 0, 0, 1);
                 mGameState.setPaused(true);
 
+                // Save the current score to high scores list, if applicable
+                mGameInfo.updateHighScores();
+
                 // Toggle the Game Over screen
                 mGameState.setGameOver(true);
             } else {
+                mNewLife = true;
                 // Need to move the snake away from the edge to avoid a collision loop
-                newLife();
+                mSnake.reset(NUM_BLOCKS_WIDE, mNumBlocksHigh);
                 mGameState.setPaused(true);
             }
 
-           //mGameOver = true;
-
-            // Possible idea for later: show score and highest score at the end
         }
     }
 
@@ -389,10 +456,10 @@ class SnakeGame extends SurfaceView implements Runnable{
             mPaint.setColor(Color.argb(255, 255, 255, 255));
             mPaint.setTextSize(120);
 
-
-            // Draw the score
-            mCanvas.drawText("Score: " + mGameInfo.getScore(), 20, 120, mPaint);
-            mCanvas.drawText("Lives: " + mGameInfo.getLives(), 620, 120, mPaint);
+            // Draw the lives and score
+            String displayStats = String.format("Score: %d    Lives: %d", mGameInfo.getScore(), mGameInfo.getLives());
+            mCanvas.drawText(displayStats, 20, 120, mPaint);
+            //mCanvas.drawText("Lives: " + , 620, 120, mPaint);
 
             // Draw the apple and the snake
             mApple.draw(mCanvas, mPaint);
@@ -401,7 +468,7 @@ class SnakeGame extends SurfaceView implements Runnable{
             if(mGameState.isGameOver()){
                 // The Game Over screen
 
-                // Fill the screen with a color
+                // Background color of game over screen
                 mCanvas.drawColor(Color.argb(255, 0, 0, 0));
 
                 // Set the size and color of the mPaint for the text
@@ -409,15 +476,42 @@ class SnakeGame extends SurfaceView implements Runnable{
                 mPaint.setTextSize(250);
 
                 // "Game Over" text
-                mCanvas.drawText("Game Over", 500, 500, mPaint);
+                mCanvas.drawText("Game Over", 475, 300, mPaint);
 
-                // Score
+                // Add new text if the player achieved a new high score
+                if (mGameInfo.isNewHighScore()) {
+                    mPaint.setColor(Color.argb(255, 255, 255, 0)); // Yellow text
+                    mPaint.setTextSize(75);
+                    mCanvas.drawText("New High Score!", 825, 700, mPaint);
+                }
+
+                // Display the score
                 mPaint.setTextSize(150);
-                mCanvas.drawText("Score: "+mGameInfo.getScore(), 900, 700, mPaint);
+                mCanvas.drawText("Score: "+mGameInfo.getScore(), 825, 500, mPaint);
 
+                // List the high scores
+                mPaint.setColor(Color.argb(255, 255, 255, 255));
+                mPaint.setTextSize(75);
+                boolean firstMatch = false;
+                int counter = 1;
+                int yOffset = 450;  // Starting Y position for Top Scores text
+                mCanvas.drawText("Top 3 Scores", 1700, yOffset, mPaint);
+                //for (int i = 0; i < mGameInfo.getHighScores().size(); i++) {
+                for (int score : mGameInfo.getHighScores()) {
+                    // Write out each score
+                    yOffset += 100; // spacing out each high score
+                    mPaint.setColor(Color.argb(255, 255, 255, 255));
+                    if ((score == mGameInfo.getScore()) && mGameInfo.isNewHighScore() && !firstMatch) {
+                        mPaint.setColor(Color.argb(255, 255, 255, 0));
+                        firstMatch = true;
+                    }
+                    String scoreText = String.format("%d. %10d", counter++, score);
+                    mCanvas.drawText(scoreText, 1700, yOffset, mPaint);
+                }
+                mPaint.setColor(Color.argb(255, 255, 255, 255));
                 // How to start new game
                 mPaint.setTextSize(50);
-                mCanvas.drawText("Tap the screen to start a new game", 750, 950, mPaint);
+                mCanvas.drawText("Tap the screen to start a new game", 700, 950, mPaint);
             } else if (mGameState.isUserPaused()) {
                 // For when the USER pauses the game
 
@@ -453,8 +547,6 @@ class SnakeGame extends SurfaceView implements Runnable{
                 }
                 mPaint.setTextSize(120);
                 mCanvas.drawText(message,375, 600, mPaint);
-
-                //mCanvas.drawText("Tap again to use new life.", 500, 900, mPaint);
             } else {
                 // The game is playing, so render the pause button
                 mCanvas.scale(0.5f, 0.5f);
@@ -480,18 +572,8 @@ class SnakeGame extends SurfaceView implements Runnable{
                     // The game is internally "paused" until the screen is tapped
                     // This is primarily used for freezing the game so the user can read the screen
                     // Triggers setup for starting a new game
-
                     mGameState.setPaused(false);
                     newGame();
-
-                    return true; // Don't change snake direction
-                }
-                if (pauseButton.isClicked(motionEvent.getX(), motionEvent.getY()) && !mGameState.isGameOver()) {
-                    // Only allow the user to pause the game when it's running
-                    // If the game is paused, we won't allow user input anywhere except the pause/play button
-
-                    mGameState.toggleUserPaused();
-                    mGameState.togglePaused();
 
                     return true; // Don't change snake direction
                 } else if (mGameState.isGameOver()) {
@@ -501,7 +583,17 @@ class SnakeGame extends SurfaceView implements Runnable{
                     mGameState.setPaused(true);
                     mGameState.setUserPaused(false);
 
+                    //Log.d("Something", "A pause was triggered.");
                     mGameInfo.resetCounters(); // reset the lives and score to the defaults
+
+                    return true; // Don't change snake direction
+                }
+                if (pauseButton.isClicked(motionEvent.getX(), motionEvent.getY()) && !mGameState.isGameOver()) {
+                    // Only allow the user to pause the game when it's running
+                    // If the game is paused, we won't allow user input anywhere except the pause/play button
+
+                    mGameState.toggleUserPaused();
+                    mGameState.togglePaused();
 
                     return true; // Don't change snake direction
                 } else if (!mGameState.isPaused()) {
@@ -517,7 +609,6 @@ class SnakeGame extends SurfaceView implements Runnable{
         }
         return true;
     }
-
 
     // Stop the thread
     public void pause() {
