@@ -81,7 +81,7 @@ class SnakeGame extends SurfaceView implements Runnable{
         mBackgroundBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.grass3);
 
         // Add dimensions for pause button and load the image
-        pauseButton = new PauseButton(2050, 50, 100, 100);
+        pauseButton = new PauseButton(2050, 50, 130, 130);
         pauseBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.pause_button);
         playBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.play_button);
 
@@ -219,7 +219,7 @@ class SnakeGame extends SurfaceView implements Runnable{
             }
         }
 
-        // Load the high scores from a file
+        // Load the high scores from the text file
         @SuppressWarnings("unchecked")
         private void loadHighScores() {
             File highScoresFile = getHighScoresFile();
@@ -510,7 +510,7 @@ class SnakeGame extends SurfaceView implements Runnable{
                 if (mGameInfo.isNewHighScore()) {
                     mPaint.setColor(Color.argb(255, 255, 255, 0)); // Yellow text
                     mPaint.setTextSize(75);
-                    mCanvas.drawText("New Leaderboard Score!", 825, 700, mPaint);
+                    mCanvas.drawText("New Leaderboard Score!", 700, 700, mPaint);
                 }
 
                 // Display the score
@@ -564,8 +564,12 @@ class SnakeGame extends SurfaceView implements Runnable{
 
                 mCanvas.drawText("Tap to start!", 450, 600, mPaint);
             } else if (mNewLife) {
+                // Black background for new life
+                mCanvas.drawColor(Color.argb(255, 0, 0, 0));
+
                 // Set the size and color of the mPaint for the text
-                mPaint.setColor(Color.argb(255, 255, 255, 255));
+                mPaint.setColor(Color.argb(255, 255, 155, 55));
+                //mPaint.setColor(Color.argb(255, 255, 255, 255));
                 mPaint.setTextSize(100);
                 mSP.stop(mTrack);
                 String message = String.format("You have %d lives remaining.", mGameInfo.getLives());
@@ -574,7 +578,11 @@ class SnakeGame extends SurfaceView implements Runnable{
                     message = String.format("You have %d life remaining.", mGameInfo.getLives());
                 }
                 mPaint.setTextSize(120);
-                mCanvas.drawText(message,375, 600, mPaint);
+                mCanvas.drawText(message,425, 550, mPaint);
+
+                // Tap to continue text
+                mPaint.setTextSize(70);
+                mCanvas.drawText("Tap to continue",900, 700, mPaint);
             } else {
                 // The game is playing, so render the pause button
                 mCanvas.scale(0.5f, 0.5f);
@@ -592,8 +600,8 @@ class SnakeGame extends SurfaceView implements Runnable{
             case MotionEvent.ACTION_UP:
                 if (mNewLife) {
                     // When the player loses a life, this conditional activates
-                    mNewLife = false;
                     newLife();
+                    mNewLife = false;
 
                     return true; // Don't change snake direction
                 } else if (mGameState.isPaused() && !mGameState.isUserPaused() && !mGameState.isGameOver()) {
