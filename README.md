@@ -4,10 +4,6 @@ The project is a rework of the classic "Snake" game. The task is to specficially
 
   ### MEMBERS
 - Casey Paras
-    - Discord: `lumikha`
 - Ahad Syed
-    - Discord: `ahadsyed1`
 - Nicholas Minor
-    - Discord: `lelouch_di_britannia`
 - Cristian Barbosa Chombo
-    - Discord: `cyberjaeger`
