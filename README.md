@@ -6,4 +6,3 @@ The project is a rework of the classic "Snake" game. The task is to specficially
 - Casey Paras
 - Ahad Syed
 - Nicholas Minor
-- Cristian Barbosa Chombo
